@@ -44,9 +44,11 @@ def aggregate_to_hourly(data_dict):
         if len(entries) == 4:
             avg_net_load = sum(e['net_load'] for e in entries) / 4
             avg_renewables = sum(e['renewables'] for e in entries) / 4
+            avg_solar = sum(e['solar'] for e in entries) / 4
             hourly_aggregated[hour_ts] = {
                 'net_load': avg_net_load,
                 'renewables': avg_renewables,
+                'solar': avg_solar,
                 'residual_load': avg_net_load - avg_renewables
             }
     return hourly_aggregated
@@ -76,7 +78,20 @@ def get_last_timestamp(file_path):
 def main():
     country = "de"
     
-    last_ts = get_last_timestamp(OUTPUT_FILE)
+    
+    # Check if header matches new schema, if not, force restart
+    current_header = None
+    if OUTPUT_FILE.exists():
+        with open(OUTPUT_FILE, 'r', newline='') as f:
+            current_header = next(csv.reader(f), None)
+    
+    expected_columns = ['timestamp_unix', 'datetime_utc', 'net_load_mw_avg', 'renewable_generation_mw_avg', 'solar_mw_avg', 'residual_load_mw_avg', 'day_ahead_price_eur_mwh']
+    
+    if current_header != expected_columns:
+        print("Schema changed (adding Solar). Forcing full re-fetch...")
+        last_ts = None
+    else:
+        last_ts = get_last_timestamp(OUTPUT_FILE)
     
     if last_ts:
         # Start from the next hour
@@ -141,6 +156,15 @@ def main():
                 load_vals = series_map[load_key]
                 chunk_15min_data = {}
                 
+                # Extract Solar specifically
+                solar_key = "Solar"
+                solar_vals = [0.0] * len(ts_list)
+                if solar_key in series_map:
+                    solar_data_raw = series_map[solar_key]
+                    for i, val in enumerate(solar_data_raw):
+                        if i < len(solar_vals) and val is not None:
+                            solar_vals[i] = val
+                
                 # Sum renewables
                 r_sums = [0.0] * len(ts_list)
                 for r_key in renewable_keys:
@@ -152,7 +176,11 @@ def main():
                 
                 for i, ts in enumerate(ts_list):
                     if i < len(load_vals) and load_vals[i] is not None:
-                        chunk_15min_data[ts] = {'net_load': load_vals[i], 'renewables': r_sums[i]}
+                        chunk_15min_data[ts] = {
+                            'net_load': load_vals[i], 
+                            'renewables': r_sums[i],
+                            'solar': solar_vals[i]
+                        }
                 
                 # Aggregate this chunk's 15min data to hourly
                 chunk_hourly = aggregate_to_hourly(chunk_15min_data)
@@ -186,7 +214,7 @@ def main():
     with open(OUTPUT_FILE, mode=mode, newline='') as f:
         writer = csv.writer(f)
         if not is_append:
-            writer.writerow(['timestamp_unix', 'datetime_utc', 'net_load_mw_avg', 'renewable_generation_mw_avg', 'residual_load_mw_avg', 'day_ahead_price_eur_mwh'])
+            writer.writerow(['timestamp_unix', 'datetime_utc', 'net_load_mw_avg', 'renewable_generation_mw_avg', 'solar_mw_avg', 'residual_load_mw_avg', 'day_ahead_price_eur_mwh'])
         
         for ts in sorted_hours:
             load_data = combined_hourly_load[ts]
@@ -196,6 +224,7 @@ def main():
                 ts, dt, 
                 load_data['net_load'], 
                 load_data['renewables'], 
+                load_data['solar'], 
                 load_data['residual_load'], 
                 price
             ])

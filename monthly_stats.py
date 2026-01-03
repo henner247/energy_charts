@@ -27,7 +27,8 @@ def main():
     df['date'] = df['datetime'].dt.date
 
     # Filter for relevant years if needed (dataset starts 2024, so likely just 2024, 2025)
-    df = df[df['year'].isin([2024, 2025])]
+    # Filter for relevant years if needed (dataset starts 2024, so likely just 2024, 2025, 2026)
+    df = df[df['year'].isin([2024, 2025, 2026])]
 
     # 1. Calculate Daily Spreads first
     print("Calculating daily spreads...")
@@ -81,12 +82,13 @@ def main():
     pivot_df.columns = [f"{metric}_{year}" for metric, year in pivot_df.columns]
     
     # Reorder columns nicely
+    # Reorder columns nicely
     target_order = [
-        'avg_price_2024', 'avg_price_2025',
-        'avg_spread_2024', 'avg_spread_2025',
-        'neg_hours_2024', 'neg_hours_2025',
-        'avg_price_res_neg_2024', 'avg_price_res_neg_2025',
-        'avg_price_res_high_2024', 'avg_price_res_high_2025'
+        'avg_price_2024', 'avg_price_2025', 'avg_price_2026',
+        'avg_spread_2024', 'avg_spread_2025', 'avg_spread_2026',
+        'neg_hours_2024', 'neg_hours_2025', 'neg_hours_2026',
+        'avg_price_res_neg_2024', 'avg_price_res_neg_2025', 'avg_price_res_neg_2026',
+        'avg_price_res_high_2024', 'avg_price_res_high_2025', 'avg_price_res_high_2026'
     ]
     
     # Filter to only existing columns (in case 2025 data is missing completely)
@@ -134,7 +136,7 @@ def main():
     
     # Round negative hours to int (handle NaNs if necessary, though simpler to just format)
     # Use string formatting for display to avoid float decimals
-    for yr in [2024, 2025]:
+    for yr in [2024, 2025, 2026]:
         col = f'neg_hours_{yr}'
         if col in display_df.columns:
             display_df[col] = display_df[col].apply(lambda x: f"{x:.0f}" if pd.notnull(x) else "-")

@@ -1,0 +1,42 @@
+name: Update Energy Data
+
+on:
+  schedule:
+    # Run every day at 13:00 UTC (14:00 CET / 15:00 CEST)
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Ensure specific fetch dependencies if not in requirements (though residual_load_with_prices uses standard libs mostly, need to check if it uses custom ones)
+        # residual_load_with_prices.py uses: urllib, json, csv, datetime, pathlib, time, collections, os -> All Standard Lib.
+        # But wait, did I ever use pandas in the fetch script? Checking...
+        # No, fetch script is pure python standard lib.
+        
+    - name: Run Data Fetch Script
+      run: python residual_load_with_prices.py
+      
+    - name: Commit and push if changes
+      run: |
+        git config --global user.name 'GitHub Action'
+        git config --global user.email 'action@github.com'
+        git add hourly_german_residual_load_and_prices_2024_present.csv
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update energy data" && git push)

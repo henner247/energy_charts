@@ -20,7 +20,7 @@ def main():
     df['month'] = df['datetime'].dt.month
     
     # Filter for relevant years
-    df = df[df['year'].isin([2024, 2025])]
+    df = df[df['year'].isin([2024, 2025, 2026])]
 
     print(f"Generating scatter plots to {OUTPUT_PDF}...")
     
@@ -49,6 +49,12 @@ def main():
             if not data_2025.empty:
                 plt.scatter(data_2025['residual_load_mw_avg'], data_2025['day_ahead_price_eur_mwh'], 
                             alpha=0.5, label='2025', s=10, color='orange')
+
+            # Plot 2026
+            data_2026 = month_data[month_data['year'] == 2026]
+            if not data_2026.empty:
+                plt.scatter(data_2026['residual_load_mw_avg'], data_2026['day_ahead_price_eur_mwh'], 
+                            alpha=0.5, label='2026', s=10, color='green')
             
             plt.title(f"Residual Load vs Price - {month_name}", fontsize=14)
             plt.xlabel("Residual Load (MW)", fontsize=12)
@@ -65,6 +71,35 @@ def main():
             # Save to PDF page
             pdf.savefig()
             plt.close()
+
+        # --- Jan 2025 vs Jan 2026 Comparison ---
+        print("  Plotting Jan 2025 vs Jan 2026 Comparison...")
+        plt.figure(figsize=(10, 7))
+        
+        jan_data = df[df['month'] == 1]
+        jan_2025 = jan_data[jan_data['year'] == 2025]
+        jan_2026 = jan_data[jan_data['year'] == 2026]
+        
+        if not jan_2025.empty:
+            plt.scatter(jan_2025['residual_load_mw_avg'], jan_2025['day_ahead_price_eur_mwh'],
+                        alpha=0.5, label='Jan 2025', s=15, color='orange', marker='o')
+        
+        if not jan_2026.empty:
+            plt.scatter(jan_2026['residual_load_mw_avg'], jan_2026['day_ahead_price_eur_mwh'],
+                        alpha=0.6, label='Jan 2026', s=15, color='green', marker='x')
+
+        plt.title("Residual Load vs Price - January 2025 vs 2026", fontsize=14)
+        plt.xlabel("Residual Load (MW)", fontsize=12)
+        plt.ylabel("Day-Ahead Price (EUR/MWh)", fontsize=12)
+        plt.grid(True, linestyle='--', alpha=0.6)
+        plt.legend()
+        
+        plt.axhline(0, color='black', linewidth=0.8, linestyle='-')
+        plt.axvline(0, color='black', linewidth=0.8, linestyle='-')
+        
+        plt.tight_layout()
+        pdf.savefig()
+        plt.close()
 
     print(f"Done. PDF saved to {OUTPUT_PDF.absolute()}")
 
