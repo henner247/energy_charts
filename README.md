@@ -1,6 +1,25 @@
-# German Energy Market Analysis
+# German Energy Data Analysis 🇩🇪
 
-This project contains Python scripts to fetch, analyze, and visualize data from the [Energy Charts API](https://api.energy-charts.info/).
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_svg)](https://share.streamlit.io/henner247/energy_charts/master/app.py)
+
+This project analyzes German electricity prices, residual load, and solar capture prices using data from [Energy-Charts.info](https://energy-charts.info/).
+
+## 🚀 Live Dashboard
+The interactive dashboard is available at: [your-streamlit-app-url-will-go-here]
+
+## 🛠 Features
+- **Daily Automated Data Updates**: GitHub Actions fetch the latest data every day at 14:00 CET.
+- **Monthly Statistics**: Average prices, price spreads, and negative price hours.
+- **Solar Capture Price Analysis**: Volume-weighted average prices for solar production and capture rates.
+- **Interactive Visualizations**: Correlation between residual load and market prices.
+
+## 📦 Deployment
+This app is designed to be deployed on [Streamlit Cloud](https://streamlit.io/cloud).
+1. Fork or clone this repository.
+2. Sign in to Streamlit Cloud and click **"New app"**.
+3. Select this repository and `app.py` as the main file.
+4. Deploy!
+
 
 ## Overview
 
