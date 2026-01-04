@@ -88,6 +88,10 @@ def main():
         st.error(f"Data file `{INPUT_FILE}` not found. Please run the fetch script.")
         return
 
+    # Info Header
+    latest_date = df['datetime'].max()
+    st.info(f"📅 **Latest Data Available:** {latest_date.strftime('%B %d, %Y - %H:%M')} (UTC)")
+
     tab1, tab2, tab3 = st.tabs(["Monthly Statistics", "Solar Capture Prices", "Scatter Plots"])
 
     with tab1:
